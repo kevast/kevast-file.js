@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "declaration": true,
+    "target": "es2017"
+  },
+  "include": ["./*.ts"],
+  "exclude": ["node_modules", "**/__tests__/*"]
+}
