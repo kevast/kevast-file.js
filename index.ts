@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import {Pair} from 'kevast/dist/nodejs/Pair';
 import {IAsyncStorage} from 'kevast/dist/nodejs/Storage';
-const fsAsync = fs.promises;
 
-export = class KevastMemory implements IAsyncStorage {
+export = class KevastFile implements IAsyncStorage {
   private path: fs.PathLike;
   public constructor(path: fs.PathLike) {
     if (typeof path !== 'string' && !(path instanceof Buffer) && !(path instanceof URL)) {
@@ -62,15 +61,31 @@ export = class KevastMemory implements IAsyncStorage {
   private async readFile(): Promise<any> {
     let content: string;
     try {
-      content = (await fsAsync.readFile(this.path)).toString();
+      content = await new Promise<string>((resolve, reject) => {
+        fs.readFile(this.path, (err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(data.toString());
+          }
+        });
+      });
     } catch (err) {
       if (!(err instanceof Error)) { throw err; }
-      if (err.message !== 'ENOENT: no such file or directory') { throw err; }
-      content = '';
+      if (!err.message.startsWith('ENOENT: no such file or directory')) { throw err; }
+      content = null;
+    }
+    if (!content) {
+      content = '{}';
     }
     return JSON.parse(content);
   }
   private async writeFile(data: any): Promise<void> {
-    await fsAsync.writeFile(this.path, JSON.stringify(data));
+    if (data === null || data === undefined) { return; }
+    await new Promise<void>((resolve, reject) => {
+      fs.writeFile(this.path, JSON.stringify(data), (err) => {
+        if (err) { reject(err); } else { resolve(); }
+      });
+    });
   }
 };
