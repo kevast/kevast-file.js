@@ -4,86 +4,71 @@ import {IAsyncStorage} from 'kevast/dist/nodejs/Storage';
 
 export = class KevastFile implements IAsyncStorage {
   private path: fs.PathLike;
+  private cache: any;
   public constructor(path: fs.PathLike) {
     if (typeof path !== 'string' && !(path instanceof Buffer) && !(path instanceof URL)) {
       throw new TypeError('Illegal path: only path-like is accepted.');
     }
+    let content: string;
+    // Read file content
     try {
-      const stat = fs.statSync(path);
-      if (!stat.isFile()) {
-        throw new Error('Illegal path: only path of file is accepted.');
-      }
+      content = fs.readFileSync(path).toString();
     } catch (err) {
+      // Only process path not exist, throw the error otherwise
       if (!(err instanceof Error)) { throw err; }
       if (!err.message.startsWith('ENOENT: no such file or directory')) { throw err; }
+      // init content
+      content = '{}';
+    }
+    // Parse file content
+    try {
+      this.cache = JSON.parse(content);
+    } catch (err) {
+      // Only process JSON parse problem, throw the error otherwise
+      if (!(err instanceof Error)) { throw err; }
+      if (!err.message.startsWith('Unexpected end of JSON input')) { throw err; }
+      // if JSON parse fail because content is empty (read an empty file)
+      if (content === '') {
+        this.cache = {};
+      }
     }
     this.path = path;
   }
   public async clear() {
-    await this.writeFile('');
+    this.cache = {};
+    await this.writeFile();
   }
   public async has(key: string): Promise<boolean> {
-    const data = await this.readFile();
-    return key in data;
+    return key in this.cache;
   }
   public async delete(key: string) {
-    const data = await this.readFile();
-    if (key in data) {
-      delete data[key];
-      await this.writeFile(data);
+    if (key in this.cache) {
+      delete this.cache[key];
+      await this.writeFile();
     }
   }
   public async entries(): Promise<Iterable<Pair>> {
-    const data = await this.readFile();
-    return Object.entries(data);
+    return Object.entries(this.cache);
   }
   public async get(key: string): Promise<string> {
-    const data = await this.readFile();
-    return data[key];
+    return this.cache[key];
   }
   public async keys(): Promise<Iterable<string>> {
-    const data = await this.readFile();
-    return Object.keys(data);
+    return Object.keys(this.cache);
   }
   public async set(key: string, value: string) {
-    const data = await this.readFile();
-    data[key] = value;
-    await this.writeFile(data);
+    this.cache[key] = value;
+    await this.writeFile();
   }
   public async size(): Promise<number> {
-    const data = await this.readFile();
-    return Object.keys(data).length;
+    return Object.keys(this.cache).length;
   }
   public async values(): Promise<Iterable<string>> {
-    const data = await this.readFile();
-    return Object.values(data);
+    return Object.values(this.cache);
   }
-  private async readFile(): Promise<any> {
-    let content: string;
-    try {
-      content = await new Promise<string>((resolve, reject) => {
-        fs.readFile(this.path, (err, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data.toString());
-          }
-        });
-      });
-    } catch (err) {
-      if (!(err instanceof Error)) { throw err; }
-      if (!err.message.startsWith('ENOENT: no such file or directory')) { throw err; }
-      content = null;
-    }
-    if (!content) {
-      content = '{}';
-    }
-    return JSON.parse(content);
-  }
-  private async writeFile(data: any): Promise<void> {
-    if (data === null || data === undefined) { return; }
+  private async writeFile(): Promise<void> {
     await new Promise<void>((resolve, reject) => {
-      fs.writeFile(this.path, JSON.stringify(data), (err) => {
+      fs.writeFile(this.path, JSON.stringify(this.cache), (err) => {
         if (err) { reject(err); } else { resolve(); }
       });
     });
