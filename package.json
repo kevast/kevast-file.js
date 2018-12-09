@@ -4,11 +4,12 @@
   "description": "File storage for kevast.js",
   "main": "dist/index.js",
   "keywords": [
+    "kevast",
     "key",
     "value",
     "key-value",
     "storage",
-    "kevast",
+    "redundancy",
     "file"
   ],
   "scripts": {
@@ -30,7 +31,7 @@
     "@types/node": "^10.12.12",
     "@types/tmp": "^0.0.33",
     "espower-typescript": "^9.0.1",
-    "kevast": "^0.0.5",
+    "kevast": "^0.0.6",
     "mocha": "^5.2.0",
     "power-assert": "^1.6.1",
     "tmp": "^0.0.33",
