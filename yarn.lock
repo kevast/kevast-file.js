@@ -537,10 +537,10 @@ js-yaml@^3.7.0:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-kevast@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.npmjs.org/kevast/-/kevast-0.0.6.tgz#eb8c02353756ce0b5d958d4fa1981356d35af59b"
-  integrity sha512-7KfQGEXA6W9urh0U1PhCmS9LYO8uOA+askxa1VTM/XylyOlrOVEpcJimgCRTRXDx6vSqBbb7tG9VuYehstWqBw==
+kevast@^0.0.8:
+  version "0.0.8"
+  resolved "https://registry.npmjs.org/kevast/-/kevast-0.0.8.tgz#6f58b19d03da29a546acef94eac9745c998caadf"
+  integrity sha512-nbApmhDEp/S533Lsez+Sjzz4IMVe+/VHETe+zrZsV3+kJEq/217gKdrLiYgonxmit/SqZ2ZjXlelr9DgXGhFEQ==
 
 levn@~0.3.0:
   version "0.3.0"
