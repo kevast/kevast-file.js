@@ -22,17 +22,17 @@ export async function basicTest() {
   // Entries
   assert.deepStrictEqual(
     [...await this.kevast.entries()],
-    [['key1', 'value1'], ['key2', 'value2'], ['key3', 'value3']]
+    [['key1', 'value1'], ['key2', 'value2'], ['key3', 'value3']],
   );
   // Keys
   assert.deepStrictEqual(
     [...await this.kevast.keys()],
-    ['key1', 'key2', 'key3']
+    ['key1', 'key2', 'key3'],
   );
   // Values
   assert.deepStrictEqual(
     [...await this.kevast.values()],
-    ['value1', 'value2', 'value3']
+    ['value1', 'value2', 'value3'],
   );
   // Clear
   await this.kevast.clear();
