@@ -1,6 +1,6 @@
 {
   "name": "kevast-file",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "File storage for kevast.js",
   "main": "dist/index.js",
   "keywords": [
@@ -16,7 +16,7 @@
     "test": "mocha --require espower-typescript/guess \"test/**/*.ts\"",
     "build": "tsc",
     "clean": "rm -rf ./dist/*",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "yarn test && yarn build"
   },
   "files": [
     "dist/*"
@@ -30,7 +30,7 @@
     "@types/node": "^10.12.18",
     "@types/tmp": "^0.0.33",
     "espower-typescript": "^9.0.1",
-    "kevast": "^0.1.7",
+    "kevast": "^0.1.8",
     "mocha": "^5.2.0",
     "power-assert": "^1.6.1",
     "tmp": "^0.0.33",
