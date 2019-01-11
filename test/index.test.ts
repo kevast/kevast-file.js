@@ -3,71 +3,90 @@ import * as fs from 'fs';
 import { Kevast } from 'kevast';
 import * as tmp from 'tmp';
 import { KevastFile } from '../index';
-import { basicTest } from './share';
+
+let path: string;
+let kevast: Kevast;
 
 describe('Test basic function', () => {
-  it('Path not exist', async () => {
-    this.path = tmp.tmpNameSync();
-    this.kevast = await Kevast.create(new KevastFile(this.path));
-    assert(this.kevast.size() === 0);
-    await basicTest.call(this);
+  it('Invalid path', () => {
+    assert.throws(() => {
+      const _ = new KevastFile(1 as any as string);
+    }, new TypeError('Path must be a string, buffer or url.'));
   });
-  it('Directory path given', async () => {
+  it('Path not exist', async () => {
+    path = tmp.tmpNameSync();
+    kevast = new Kevast(new KevastFile(path));
+    await basicTest();
+  });
+  it('Directory path', async () => {
     const dir = tmp.dirSync();
-    try {
-      await Kevast.create(new KevastFile(dir.name));
-    } catch (err) {
-      assert(err.message === 'EISDIR: illegal operation on a directory, read');
-    }
+    assert.throws(() => {
+      const _ = new KevastFile(dir.name);
+    }, new Error('EISDIR: illegal operation on a directory, read'));
     dir.removeCallback();
   });
-  it('File with invalid content given', async () => {
-    this.path = tmp.tmpNameSync();
-    fs.writeFileSync(this.path, '#$%%&^%^&');
-    try {
-      const kevast = await Kevast.create(new KevastFile(this.path));
-    } catch (err) {
-      assert(err.message.startsWith('Unexpected token'));
-    }
-    fs.unlinkSync(this.path);
+  it('File with invalid content', async () => {
+    path = tmp.tmpNameSync();
+    fs.writeFileSync(path, '#$%%&^%^&');
+    assert.throws(() => {
+      const _ = new KevastFile(path);
+    }, new SyntaxError('Unexpected token # in JSON at position 0'));
+    fs.unlinkSync(path);
   });
-  it('File path given', async () => {
+  it('File exists but empty', async () => {
     const tempFile = tmp.fileSync();
-    this.path = tempFile.name;
-    this.kevast = await Kevast.create(new KevastFile(this.path));
-    assert(this.kevast.size() === 0);
-    await basicTest.call(this);
-    tempFile.removeCallback();
-  });
-  it('File path buffer given', async () => {
-    const tempFile = tmp.fileSync();
-    this.path = tempFile.name;
-    const buffer = Buffer.from(this.path);
-    this.kevast = await Kevast.create(new KevastFile(buffer));
-    assert(this.kevast.size() === 0);
-    await basicTest.call(this);
-    tempFile.removeCallback();
-  });
-  it('File url given', async () => {
-    const tempFile = tmp.fileSync();
-    this.path = tempFile.name;
-    const url = new URL(`file://${this.path}`);
-    this.kevast = await Kevast.create(new KevastFile(url));
-    assert(this.kevast.size() === 0);
-    await basicTest.call(this);
+    path = tempFile.name;
+    kevast = new Kevast(new KevastFile(path));
+    await basicTest();
     tempFile.removeCallback();
   });
   it('Init with data', async () => {
-    this.path = tmp.tmpNameSync();
-    const data = [
-      ['key1', 'value1'],
-      ['key2', 'value2'],
-      ['key3', 'value3'],
-    ];
-    fs.writeFileSync(this.path, JSON.stringify(data));
-    this.kevast = await Kevast.create(new KevastFile(this.path));
-    assert(this.kevast.size() === data.length);
-    assert.deepStrictEqual([...this.kevast.entries()], data);
-    fs.unlinkSync(this.path);
+    path = tmp.tmpNameSync();
+    const data = {
+      key1: 'value1',
+      key2: 'value2',
+      key3: 'value3',
+    };
+    fs.writeFileSync(path, JSON.stringify(data));
+    kevast = new Kevast(new KevastFile(path));
+    assert(await kevast.get('key1') === 'value1');
+    assert(await kevast.get('key2') === 'value2');
+    assert(await kevast.get('key3') === 'value3');
+    fs.unlinkSync(path);
+  });
+  it('Error Handle', async () => {
+    path = tmp.tmpNameSync();
+    fs.writeFileSync(path, '');
+    kevast = new Kevast(new KevastFile(path));
+    fs.unlinkSync(path);
+    fs.mkdirSync(path);
+    assert.rejects(async () => {
+      await kevast.set('key', 'value');
+    }, {
+      message: /^EISDIR: illegal operation on a directory, open/,
+      name: 'Error',
+    });
+    fs.rmdirSync(path);
   });
 });
+
+async function basicTest() {
+  // Set
+  await kevast.set('key1', 'value1');
+  await kevast.set('key2', 'value2');
+  await kevast.set('key3', 'value3');
+  assert(fs.readFileSync(path).toString() === JSON.stringify({
+    key1: 'value1',
+    key2: 'value2',
+    key3: 'value3',
+  }));
+  // Delete
+  await kevast.remove('key1');
+  assert(fs.readFileSync(path).toString() === JSON.stringify({
+    key2: 'value2',
+    key3: 'value3',
+  }));
+  // Clear
+  await kevast.clear();
+  assert(fs.readFileSync(path).toString() === JSON.stringify({}));
+}

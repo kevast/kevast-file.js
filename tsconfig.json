@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./dist",
     "noImplicitAny": true,
     "module": "CommonJS",
     "declaration": true,
-    "target": "ES2017"
+    "target": "ES2015",
+    "strict": true
   },
   "include": ["./*.ts"],
   "exclude": ["node_modules"]
