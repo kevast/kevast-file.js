@@ -11,7 +11,7 @@ describe('Test basic function', () => {
   it('Invalid path', () => {
     assert.throws(() => {
       const _ = new KevastFile(1 as any as string);
-    }, new TypeError('Path must be a string, buffer or url.'));
+    }, new TypeError('Path must be a string.'));
   });
   it('Path not exist', async () => {
     path = tmp.tmpNameSync();
@@ -60,12 +60,11 @@ describe('Test basic function', () => {
     kevast = new Kevast(new KevastFile(path));
     fs.unlinkSync(path);
     fs.mkdirSync(path);
-    assert.rejects(async () => {
+    try {
       await kevast.set('key', 'value');
-    }, {
-      message: /^EISDIR: illegal operation on a directory, open/,
-      name: 'Error',
-    });
+    } catch (err) {
+      assert(err.message.startsWith('EISDIR: illegal operation on a directory, open'));
+    }
     fs.rmdirSync(path);
   });
 });

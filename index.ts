@@ -6,11 +6,11 @@ interface NameToValueMap {
 }
 
 export class KevastFile implements Storage {
-  private path: fs.PathLike;
+  private path: string;
   private cache: NameToValueMap;
-  public constructor(path: fs.PathLike) {
-    if (typeof path !== 'string' && !(path instanceof Buffer) && !(path instanceof URL)) {
-      throw new TypeError('Path must be a string, buffer or url.');
+  public constructor(path: string) {
+    if (typeof path !== 'string') {
+      throw new TypeError('Path must be a string.');
     }
     this.path = path;
     let content: string;

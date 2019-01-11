@@ -1,6 +1,6 @@
 {
   "name": "kevast-file",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "File storage for kevast.js",
   "main": "dist/index.js",
   "keywords": [
